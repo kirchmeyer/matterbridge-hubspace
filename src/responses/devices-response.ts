@@ -1,4 +1,4 @@
-import { DeviceFunctionResponse } from './device-function-response';
+import { DeviceFunctionResponse } from './device-function-response.js';
 
 /**
  * HTTP response for device discovery

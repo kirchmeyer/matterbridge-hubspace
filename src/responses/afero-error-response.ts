@@ -1,5 +1,3 @@
-import { isNullOrUndefined } from '../utils';
-
 export interface AferoErrorResponse {
     /** UNIX timestamp of the request */
     timestamp: number;
@@ -16,9 +14,12 @@ export interface AferoErrorResponse {
  * @param error Error object to check
  * @returns True if error is from Afero
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isAferoError(error: any): error is AferoErrorResponse {
+export function isAferoError(error: unknown): error is AferoErrorResponse {
     if (error === null || typeof error !== 'object') return false;
 
-    return isNullOrUndefined(error.timestamp, error.status, error.status_description, error.path);
+    const response = error as Record<string, unknown>;
+    return typeof response.timestamp === 'number'
+        && typeof response.status === 'number'
+        && typeof response.error_description === 'string'
+        && typeof response.path === 'string';
 }

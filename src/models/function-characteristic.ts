@@ -1,5 +1,5 @@
 /**
- * Homebridge characteristic for device function
+ * Characteristic represented by a Hubspace device function
  */
 export enum FunctionCharacteristic {
     None,

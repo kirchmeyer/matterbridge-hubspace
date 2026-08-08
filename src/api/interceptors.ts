@@ -1,5 +1,5 @@
 import { InternalAxiosRequestConfig } from 'axios';
-import { tokenService } from '../services/token.service';
+import { tokenService } from '../services/token.service.js';
 
 /**
  * Adds a Bearer token to the request

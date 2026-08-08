@@ -1,0 +1,38 @@
+name: Device support request
+description: Request support or report incomplete support for a Hubspace device
+title: "[Device]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: Do not include credentials, tokens, account IDs, device IDs, Matter setup codes, or other personal data.
+  - type: input
+    id: manufacturer
+    attributes:
+      label: Manufacturer
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Model number
+    validations:
+      required: true
+  - type: input
+    id: device-class
+    attributes:
+      label: Hubspace device class
+      description: Include this only if it is available in redacted debug output.
+  - type: textarea
+    id: functions
+    attributes:
+      label: Requested functions
+      description: Describe the controls available in Hubspace and what is missing in Matter.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Redacted debug information
+      render: shell

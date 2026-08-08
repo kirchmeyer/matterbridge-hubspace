@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, CreateAxiosDefaults } from 'axios';
-import { addBearerToken } from './interceptors';
+import { addBearerToken } from './interceptors.js';
 
 /**
  * Creates an HTTP client with Bearer interceptor

@@ -1,12 +1,20 @@
 import { AxiosError, AxiosResponse } from 'axios';
-import { CharacteristicValue } from 'homebridge';
-import { Endpoints } from '../api/endpoints';
-import { createHttpClientWithBearerInterceptor } from '../api/http-client-factory';
-import { DeviceFunction, isNoFunction } from '../models/device-function';
-import { HubspacePlatform } from '../platform';
-import { isAferoError } from '../responses/afero-error-response';
-import { DeviceStatusResponse } from '../responses/device-status-response';
-import { convertNumberToHex } from '../utils';
+import { Endpoints } from '../api/endpoints.js';
+import { createHttpClientWithBearerInterceptor } from '../api/http-client-factory.js';
+import { DeviceFunction, isNoFunction } from '../models/device-function.js';
+import { isAferoError } from '../responses/afero-error-response.js';
+import { DeviceStatusResponse } from '../responses/device-status-response.js';
+import { convertNumberToHex } from '../utils.js';
+import { AccountService } from './account.service.js';
+
+export type HubspaceValue = boolean | number | string;
+
+interface DeviceServiceContext {
+    readonly accountService: AccountService;
+    readonly log: {
+        error(message: string, ...parameters: unknown[]): void;
+    };
+}
 
 /**
  * Service for interacting with devices
@@ -18,7 +26,7 @@ export class DeviceService {
     });
 
 
-    constructor(private readonly _platform: HubspacePlatform) { }
+    constructor(private readonly _context: DeviceServiceContext) { }
 
     /**
      * Sets an attribute value for a device
@@ -26,15 +34,15 @@ export class DeviceService {
      * @param deviceFunction Function to set value for
      * @param value Value to set to attribute
      */
-    async setValue(deviceId: string, deviceFunction: DeviceFunction, value: CharacteristicValue): Promise<void> {
+    async setValue(deviceId: string, deviceFunction: DeviceFunction, value: HubspaceValue): Promise<void> {
         let response: AxiosResponse;
 
         if (isNoFunction(deviceFunction)) {
-            throw new this._platform.api.hap.HapStatusError(this._platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+            throw new Error(`Hubspace function is not available for device ${deviceId}.`);
         }
 
         try {
-            response = await this._httpClient.post(`accounts/${this._platform.accountService.accountId}/devices/${deviceId}/actions`, {
+            response = await this._httpClient.post(`accounts/${this._context.accountService.accountId}/devices/${deviceId}/actions`, {
                 type: 'attribute_write',
                 attrId: deviceFunction.attributeId,
                 data: this.getDataValue(value)
@@ -47,7 +55,7 @@ export class DeviceService {
 
         if (response.status === 200) return;
 
-        this._platform.log.error(`Remote server did not accept new value ${value} for device (ID: ${deviceId}).`);
+        this._context.log.error(`Remote server did not accept new value ${value} for device (ID: ${deviceId}).`);
     }
 
     /**
@@ -56,17 +64,16 @@ export class DeviceService {
      * @param deviceFunction Function to get value for
      * @returns Data value
      */
-    async getValue(deviceId: string, deviceFunction: DeviceFunction): Promise<CharacteristicValue | undefined> {
+    async getValue(deviceId: string, deviceFunction: DeviceFunction): Promise<HubspaceValue | undefined> {
         let deviceStatus: DeviceStatusResponse;
 
         if (isNoFunction(deviceFunction)) {
-            throw new this._platform.api.hap.HapStatusError(this._platform.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+            throw new Error(`Hubspace function is not available for device ${deviceId}.`);
         }
 
         try {
-            const response =
-                await this._httpClient
-                    .get<DeviceStatusResponse>(`accounts/${this._platform.accountService.accountId}/devices/${deviceId}?expansions=attributes`);
+            const url = `accounts/${this._context.accountService.accountId}/devices/${deviceId}?expansions=attributes`;
+            const response = await this._httpClient.get<DeviceStatusResponse>(url);
             deviceStatus = response.data;
         } catch (ex) {
             this.handleError(<AxiosError>ex);
@@ -77,7 +84,7 @@ export class DeviceService {
         const attributeResponse = deviceStatus.attributes.find(a => a.id.toString() === deviceFunction.attributeId);
 
         if (!attributeResponse) {
-            this._platform.log.error(`Failed to find value for ${deviceFunction.characteristic} for device (device ID: ${deviceId})`);
+            this._context.log.error(`Failed to find value for ${deviceFunction.characteristic} for device (device ID: ${deviceId})`);
             return undefined;
         }
 
@@ -120,7 +127,7 @@ export class DeviceService {
         return !value || typeof value !== 'string' ? '' : value;
     }
 
-    private getDataValue(value: CharacteristicValue): string {
+    private getDataValue(value: HubspaceValue): string {
 
         if (typeof value === 'boolean') {
             return value ? '01' : '00';
@@ -141,7 +148,7 @@ export class DeviceService {
         const responseData = error.response?.data;
         const errorMessage = isAferoError(responseData) ? responseData.error_description : error.message;
 
-        this._platform.log.error('The remote service returned an error.', errorMessage);
+        this._context.log.error('The remote service returned an error.', errorMessage);
     }
 
 }

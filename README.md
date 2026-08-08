@@ -1,85 +1,94 @@
-<p align="center">
-    <img src="https://github.com/homebridge/branding/raw/latest/logos/homebridge-wordmark-logo-vertical.png" width="150" style="max-width: 100%;">
-</p>
+# Matterbridge Hubspace
 
-<span align="center">
-  
-  # Homebridge Hubspace
+Matterbridge dynamic-platform plugin for Hubspace devices sold by Home Depot. It uses the Hubspace cloud API and exposes discovered devices as Matter endpoints.
 
-</span>
+[Matterbridge](https://github.com/Luligu/matterbridge) provides the Matter bridge runtime. This project is a Matterbridge port derived from the Homebridge implementations listed in [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md).
 
-# About plugin
-Hubspace is a platform for range of devices sold at HomeDepot. This plugin tries to integrate as many of these devices so that you can control them from HomeKit.
-  
-<p>✅ This plugin is tested and compatible with Homebridge v2.0+</p>
+## Supported devices
 
-# Disclaimer
-I do not own any rights to Hubspace. Any work published here is solely for my own convenience. I am not making any guarantees about the code or products referenced here.
-
-<p>
-  There are several Hubspace plugins available right now, all stemming from an original one.  I haven't seen one add Light Switches yet, so I created this one to add support for Light Switches.  Its history is:
-  <ul>
-    <li>Original Repository: <a href="https://github.com/sajmonr/homebridge-hubspace" target="_blank">Sajmonr</a></li>
-    <li>Updated Repository (cleaner code, better token handling): <a href="https://github.com/JakeAi/homebridge-hubspace" target="_blank">JakeAi</a></li>
-  </ul>
-</p>
-  
-<p>If you have additional features from other versions of this plugin that you'd like incorporated, please let me know.</p>
-
-# Tested products
-Below you can find a table of products that have been tested with this plugin. Some products share similarities among one another (e.g. lights), however, that does not guarantee that they will all work.
-
-Not all features for all products are implemented. Please see the functions below of what is implemented. If you need a feature that is not implemented create an issue for it.
-
-| Product | Functions supported |
+| Hubspace device | Matter support |
 | --- | --- |
-| [Universal Smart Wi-Fi 4-Speed Ceiling Fan](https://www.homedepot.com/p/Hampton-Bay-Universal-Smart-Wi-Fi-4-Speed-Ceiling-Fan-White-Remote-Control-For-Use-Only-With-AC-Motor-Fans-Powered-by-Hubspace-76278/315169181?) | <ul><li>Light on/off</li><li>Fan on/off</li><li>Light brightness</li><li>Fan speed</li></ul> |
-| [Defiant Smart Plug](https://www.homedepot.com/p/Defiant-15-Amp-120-Volt-Smart-Wi-Fi-Bluetooth-Plug-with-1-Outlet-Powered-by-Hubspace-HPPA11AWB/315636834) | <ul><li>Power on/off</li></ul> |
-| [Commercial Electric Single Pole Switch](https://www.homedepot.com/p/Commercial-Electric-15-Amp-Single-Pole-White-Smart-Light-Switch-with-Wi-Fi-and-Bluetooth-Technology-Powered-by-Hubspace-1-Pack-HPSA11CWB/320313682) | <ul><li>Power on/off</li></ul> |
+| Lights | On/off, brightness, RGB color when provided by the device |
+| Ceiling fans | On/off and speed |
+| Outlets | On/off |
+| Switches | On/off |
 
-# Development
-There is no official documentation for Hubspace products. Under the hood they use Afero cloud as the mechanism that controls the products. Any functionality here is gained by experimenting with various functions of the devices. Afero provides simple explanation of [their APIs](https://developer.afero.io/API-DeviceEndpoints), however, this is in no way comprehensive.
+Hubspace devices vary by model. The plugin only exposes functions reported by both the device and the plugin's device definitions.
 
-If you find that a product does not work as intended, or you want to request a new product, please create a ticket for it in the issues section. You are always more than welcome to create a PR with any fixes or additions to the plugin.
+## Requirements
 
-## Guidelines
+- Matterbridge 3.10.4 or newer
+- Node.js 20.19+, 22.13+, 24, or 26 in the ranges supported by Matterbridge
+- A Hubspace account
 
-Any code you submit must be readable, be properly commented where necessary, and follow some common sense code quality.
+## Install
 
-This is a TypeScript project, therefore, TypeScript naming conventions must be followed, unless otherwise specified. Some basic naming conventions are below.
+Install a published release from npm:
 
-1. Use PascalCase for type names.
-1. Do not use I as a prefix for interface names.
-1. Use PascalCase for enum values.
-1. Use camelCase for function names.
-1. Use camelCase for property names and local variables.
-1. Use _ as a prefix for private fields.
-1. Use whole words in names when possible. Only use abbreviations where their use is common and obvious.
-
-Any ESLint issues need to be resolved before code can be merged. To check for production build linter issues you can run `npm run prepublishOnly`.
-
-## Adding new features
-To add new features to the do the following:
-1. Create an issue for the feature (unless there is an issue already)
-1. Assign the issue to yourself
-1. Create a new branch for the issue and name is as _{issue number}-{issue description}_ (e.g. 6-add-laser-support)
-1. Once ready issue a PR that is linked to the issue
-
-## Development authentication
-Hubspace platform uses [Keycloak](https://www.keycloak.org) for authentication. To develop new features you will need to request JWT from Keycloak to authenticate your requests against the platform.
-
-To get the token send HTTP request with `x-www-form-urlencoded` body to the URL below.
-```
-POST https://accounts.hubspaceconnect.com/auth/realms/thd/protocol/openid-connect/token
+```bash
+sudo npm install -g matterbridge-hubspace --omit=dev
+matterbridge --add matterbridge-hubspace
 ```
 
-Your payload should include the following fields.
+To test a release tarball instead, download it from the GitHub release and run:
 
-| Key | Value |
-| --- | --- |
-| grant_type | password |
-| client_id | hubspace_android |
-| username | YOUR_USERNAME |
-| password | YOUR_PASSWORD |
+```bash
+sudo npm install -g ./matterbridge-hubspace-0.1.0.tgz --omit=dev
+matterbridge --add matterbridge-hubspace
+```
 
-Once you receive the token you can make request to Afero with it to investigate the devices and commands.
+### Build from source
+
+Build the installable tarball:
+
+```bash
+npm install
+npm run package
+```
+
+Install and register the generated package:
+
+```bash
+sudo npm install -g ./matterbridge-hubspace-0.1.0.tgz --omit=dev
+matterbridge --add matterbridge-hubspace
+```
+
+Start Matterbridge and configure `matterbridge-hubspace` in the Matterbridge frontend. Enter the same username and password used by the Hubspace app, then restart the plugin.
+
+For local development without a global install, use `npm run add` from this checkout.
+
+Once the plugin is running, commission the Matterbridge bridge into Apple Home, Google Home, Alexa, SmartThings, or another Matter controller using the QR code or pairing code shown by Matterbridge.
+
+## Configuration
+
+| Setting | Default | Description |
+| --- | ---: | --- |
+| `username` | Required | Hubspace account username |
+| `password` | Required | Hubspace account password |
+| `loginBuffer` | `300` | Token refresh buffer in seconds |
+| `pollInterval` | `30` | Device state polling interval in seconds, minimum 5 |
+| `discoveryInterval` | `300` | Device reconciliation interval in seconds, minimum 60 |
+| `debug` | `false` | Enable Matterbridge endpoint debug logging |
+| `unregisterOnShutdown` | `false` | Remove endpoints when the plugin stops; intended for development |
+
+Matter requires maintained attributes rather than HomeKit-style reads on demand. The plugin therefore polls Hubspace for current state and updates Matter attributes. Discovery runs separately so newly added and removed Hubspace devices are reconciled without restarting the plugin.
+
+## Development
+
+```bash
+npm install
+npm run lint
+npm run build
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) before submitting changes. Never include Hubspace credentials, access tokens, account IDs, or device IDs in issues or logs.
+
+There is no complete official Hubspace API reference. Hubspace uses Afero cloud APIs and Keycloak authentication, so device support is based on the functions reported by each device.
+
+## Disclaimer
+
+This project is not affiliated with or endorsed by Home Depot, Hubspace, or Afero. Cloud API behavior may change without notice.
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE). See [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md) for project lineage and credits.

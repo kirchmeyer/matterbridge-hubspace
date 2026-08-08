@@ -1,11 +1,17 @@
-import { API } from 'homebridge';
-import { HubspacePlatform } from './platform';
-
-import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
+import { type PlatformConfig, type PlatformMatterbridge } from 'matterbridge';
+import { type AnsiLogger } from 'matterbridge/logger';
+import { type HubspaceConfig } from './config.js';
+import { HubspacePlatform } from './platform.js';
 
 /**
- * This method registers the platform with Homebridge
+ * Creates the Matterbridge dynamic platform.
  */
-export = (api: API) => {
-    api.registerPlatform(PLUGIN_NAME, PLATFORM_NAME, HubspacePlatform);
-};
+export default function initializePlugin(
+    matterbridge: PlatformMatterbridge,
+    log: AnsiLogger,
+    config: PlatformConfig
+): HubspacePlatform {
+    return new HubspacePlatform(matterbridge, log, config as HubspaceConfig);
+}
+
+export { HubspacePlatform } from './platform.js';

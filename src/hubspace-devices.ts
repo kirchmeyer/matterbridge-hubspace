@@ -1,6 +1,6 @@
-import { DeviceDef } from './models/device-def';
-import { DeviceType } from './models/device-type';
-import { FunctionCharacteristic } from './models/function-characteristic';
+import { DeviceDef } from './models/device-def.js';
+import { DeviceType } from './models/device-type.js';
+import { FunctionCharacteristic } from './models/function-characteristic.js';
 
 /**
  * Supported Hubspace devices and implemented functions

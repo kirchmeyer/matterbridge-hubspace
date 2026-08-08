@@ -1,5 +1,5 @@
-import { DeviceType } from './device-type';
-import { FunctionCharacteristic } from './function-characteristic';
+import { DeviceType } from './device-type.js';
+import { FunctionCharacteristic } from './function-characteristic.js';
 
 /**
  * Implemented device function definition
@@ -10,7 +10,7 @@ export interface DeviceFunctionDef {
      */
     functionClass: string;
     /**
-     * Mapping to Homebridge characteristic
+    * Mapping to a supported device function
      */
     characteristic: FunctionCharacteristic;
 }

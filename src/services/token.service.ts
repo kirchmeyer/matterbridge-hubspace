@@ -1,12 +1,12 @@
 import axios from 'axios';
-import { Endpoints } from '../api/endpoints';
-import { TokenResponse } from '../responses/token-response';
+import { Endpoints } from '../api/endpoints.js';
+import { TokenResponse } from '../responses/token-response.js';
 
 /**
  * Service for managing JWT tokens
  */
 class TokenService {
-    public loginBuffer: number = 60;
+    public loginBuffer = 60;
     private _refreshInterval?: NodeJS.Timeout;
     private readonly _httpClient = axios.create({ baseURL: Endpoints.ACCOUNT_BASE_URL });
 
@@ -14,14 +14,9 @@ class TokenService {
     private _accessTokenExpiration?: Date;
     private _refreshToken?: string;
     private _refreshTokenExpiration?: Date;
-    private _username: string = '';
-    private _password: string = '';
+    private _username = '';
+    private _password = '';
     private _authenticatingPromise?: Promise<boolean>;
-
-    /**
-     * Creates a new instance of token service
-     */
-    constructor() { }
 
     /**
      * Initializes {@link TokenService}
@@ -31,6 +26,12 @@ class TokenService {
     public login(username: string, password: string): void {
         this._username = username;
         this._password = password;
+    }
+
+    public stop(): void {
+        this.clearTokens();
+        this._username = '';
+        this._password = '';
     }
 
     public async getToken(): Promise<string | undefined> {
@@ -51,7 +52,7 @@ class TokenService {
         }
 
         this._refreshInterval = setInterval(async () => {
-            const bufferTime = this.loginBuffer * 1000; // minutes before expiration
+            const bufferTime = this.loginBuffer * 1000; // seconds before expiration
             const now = new Date().getTime();
             const exp = this._refreshTokenExpiration?.getTime() ?? 0;
 

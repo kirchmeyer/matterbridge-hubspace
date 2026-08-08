@@ -1,12 +1,12 @@
-import { DeviceFunction } from './device-function';
-import { DeviceType } from './device-type';
+import { DeviceFunction } from './device-function.js';
+import { DeviceType } from './device-type.js';
 
 /**
  * Device definition
  */
 export interface Device {
-    /** Unique UUID within HomeKit */
-    uuid: string;
+    /** Stable identifier for the exposed endpoint */
+    endpointId: string;
     /** Hubspace device ID */
     deviceId: string;
     /** Device name */

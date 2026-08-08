@@ -1,0 +1,11 @@
+{
+  "name": "matterbridge-hubspace",
+  "type": "DynamicPlatform",
+  "username": "",
+  "password": "",
+  "loginBuffer": 300,
+  "pollInterval": 30,
+  "discoveryInterval": 300,
+  "debug": false,
+  "unregisterOnShutdown": false
+}

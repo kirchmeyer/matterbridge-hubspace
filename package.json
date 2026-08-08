@@ -1,62 +1,76 @@
 {
-  "name": "homebridge-home-depot-hubspace",
-  "displayName": "Homebridge Hubspace by Home Depot",
-  "version": "2.1.7",
-  "description": "Homebridge plugin for controlling Hubspace accessories.",
-  "homepage": "https://github.com/fiestachickens/homebridge-home-depot-hubspace",
-  "author": "Cyrus Keck",
+  "name": "matterbridge-hubspace",
+  "displayName": "Matterbridge Hubspace",
+  "version": "0.1.0",
+  "description": "Matterbridge plugin for controlling Hubspace devices.",
+  "homepage": "https://github.com/kirchmeyer/matterbridge-hubspace#readme",
+  "author": "Joel Kirchmeyer",
+  "contributors": [
+    "Adam Simonicek",
+    "Cyrus Keck"
+  ],
   "license": "Apache-2.0",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/fiestachickens/homebridge-home-depot-hubspace"
+    "url": "git+https://github.com/kirchmeyer/matterbridge-hubspace.git"
   },
   "bugs": {
-    "url": "https://github.com/fiestachickens/homebridge-home-depot-hubspace/issues"
+    "url": "https://github.com/kirchmeyer/matterbridge-hubspace/issues"
   },
+  "type": "module",
   "engines": {
-    "homebridge": "^1.6.0 || ^2.0.0-beta.0",
-    "node": "^18.20.4 || ^20.15.1 || ^22"
+    "node": ">=20.19.0 <21.0.0 || >=22.13.0 <23.0.0 || >=24.0.0 <25.0.0 || >=26.0.0 <27.0.0"
   },
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "ACKNOWLEDGEMENTS.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "*.config.json",
+    "*.schema.json"
+  ],
   "scripts": {
-    "lint": "eslint src/**.ts --max-warnings=0",
-    "watch": "npm run build && npm link && nodemon",
+    "lint": "eslint \"src/**/*.ts\" --max-warnings=0",
+    "start": "matterbridge",
+    "add": "matterbridge --add .",
+    "remove": "matterbridge --remove .",
+    "watch": "tsc --watch",
     "build": "rimraf ./dist && tsc",
+    "package": "npm run lint && npm run build && node scripts/package.mjs",
     "prepublishOnly": "npm run lint && npm run build"
   },
   "keywords": [
-    "homebridge-plugin",
-    "homebridge",
-    "hubspace"
+    "matterbridge",
+    "matter",
+    "hubspace",
+    "home-depot",
+    "afero",
+    "smart-home"
   ],
   "dependencies": {
-    "axios": "^1.3.2",
+    "axios": "^1.19.0",
     "color-convert": "^2.0.1"
   },
   "devDependencies": {
-    "@types/color-convert": "^2.0.0",
-    "@types/node": "^18.13.0",
-    "@typescript-eslint/eslint-plugin": "^5.51.0",
-    "@typescript-eslint/parser": "^5.51.0",
-    "eslint": "^8.34.0",
-    "homebridge": "^1.6.0",
-    "nodemon": "^2.0.20",
+    "@types/color-convert": "^2.0.4",
+    "@types/node": "^24.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.66.0",
+    "@typescript-eslint/parser": "^8.66.0",
+    "eslint": "^8.57.1",
+    "matterbridge": "3.10.4",
     "rimraf": "^4.4.1",
-    "ts-node": "^10.9.1",
-    "typescript": "^4.9.5"
-  },
-  "homebridgePlugin": {
-    "platforms": [
-      {
-        "platform": "Hubspace",
-        "plugin_map": {
-          "plugin_name": "homebridge-home-depot-hubspace",
-          "singular": true
-        }
-      }
-    ]
+    "typescript": "^5.9.0"
   }
 }

@@ -1,11 +1,11 @@
-import { FunctionCharacteristic } from './function-characteristic';
+import { FunctionCharacteristic } from './function-characteristic.js';
 
 /**
  * Device function
  */
 export interface DeviceFunction {
     /**
-     * Homebridge characteristic for the function
+    * Plugin characteristic for the function
      */
     characteristic: FunctionCharacteristic;
     /**
@@ -33,14 +33,5 @@ export const NoDeviceFunction: DeviceFunction = {
  * @returns True if function is NULL function
  */
 export function isNoFunction(deviceFunction: DeviceFunction): boolean {
-    const noFcKeys = Object.keys(NoDeviceFunction);
-    const fcToCheckKeys = Object.keys(deviceFunction);
-
-    if (noFcKeys.length !== fcToCheckKeys.length) return false;
-
-    for (const key of noFcKeys) {
-        if (noFcKeys[key] !== fcToCheckKeys[key]) return false;
-    }
-
-    return true;
+    return deviceFunction.characteristic === FunctionCharacteristic.None;
 }

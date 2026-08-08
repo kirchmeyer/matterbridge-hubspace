@@ -1,17 +1,16 @@
 import { AxiosError } from 'axios';
-import { PlatformAccessory } from 'homebridge';
-import { createAccessoryForDevice } from '../accessories/device-accessory-factory';
-import { Endpoints } from '../api/endpoints';
-import { createHttpClientWithBearerInterceptor } from '../api/http-client-factory';
-import { Devices } from '../hubspace-devices';
-import { Device } from '../models/device';
-import { DeviceDef, DeviceFunctionDef } from '../models/device-def';
-import { DeviceFunction } from '../models/device-function';
-import { getDeviceTypeForKey } from '../models/device-type';
-import { HubspacePlatform } from '../platform';
-import { DeviceFunctionResponse } from '../responses/device-function-response';
-import { DeviceResponse } from '../responses/devices-response';
-import { PLATFORM_NAME, PLUGIN_NAME } from '../settings';
+import { createHash } from 'node:crypto';
+import { Endpoints } from '../api/endpoints.js';
+import { createHttpClientWithBearerInterceptor } from '../api/http-client-factory.js';
+import { Devices } from '../hubspace-devices.js';
+import { PluginLogger } from '../logger.js';
+import { Device } from '../models/device.js';
+import { DeviceDef, DeviceFunctionDef } from '../models/device-def.js';
+import { DeviceFunction } from '../models/device-function.js';
+import { getDeviceTypeForKey } from '../models/device-type.js';
+import { DeviceFunctionResponse } from '../responses/device-function-response.js';
+import { DeviceResponse } from '../responses/devices-response.js';
+import { AccountService } from './account.service.js';
 
 /**
  * Service for discovering and managing devices
@@ -24,80 +23,18 @@ export class DiscoveryService {
         }
     });
 
-    private _cachedAccessories: PlatformAccessory[] = [];
-
-    constructor(private readonly _platform: HubspacePlatform) { }
-
-    /**
-     * Receives accessory that has been cached by Homebridge
-     * @param accessory Cached accessory
-     */
-    configureCachedAccessory(accessory: PlatformAccessory): void {
-        // add the restored accessory to the accessories cache so we can track if it has already been registered
-        this._cachedAccessories.push(accessory);
-    }
+    constructor(
+        private readonly _accountService: AccountService,
+        private readonly _log: PluginLogger
+    ) { }
 
     /**
      * Discovers new devices
      */
-    async discoverDevices() {
-        const devices = await this.getDevicesForAccount();
-
-        // loop over the discovered devices and register each one if it has not already been registered
-        for (const device of devices) {
-            // see if an accessory with the same uuid has already been registered and restored from
-            // the cached devices we stored in the `configureAccessory` method above
-            const existingAccessory = this._cachedAccessories.find(accessory => accessory.UUID === device.uuid);
-
-            if (existingAccessory) {
-                // the accessory already exists
-                this._platform.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
-                this.registerCachedAccessory(existingAccessory, device);
-            } else {
-                // the accessory does not yet exist, so we need to create it
-                this._platform.log.info('Adding new accessory:', device.name);
-                this.registerNewAccessory(device);
-            }
-        }
-
-        this.clearStaleAccessories(this._cachedAccessories.filter(a => !devices.some(d => d.uuid === a.UUID)));
-    }
-
-    private clearStaleAccessories(staleAccessories: PlatformAccessory[]): void {
-        // Unregister them
-        this._platform.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, staleAccessories);
-
-        // Clear the cache array to reflect this change
-        for (const accessory of staleAccessories) {
-            const cacheIndex = this._cachedAccessories.findIndex(a => a.UUID === accessory.UUID);
-
-            if (cacheIndex < 0) continue;
-
-            this._cachedAccessories.splice(cacheIndex, 1);
-        }
-    }
-
-    private registerCachedAccessory(accessory: PlatformAccessory, device: Device): void {
-        accessory.context.device = device;
-        this._platform.api.updatePlatformAccessories([accessory]);
-
-        createAccessoryForDevice(device, this._platform, accessory);
-    }
-
-    private registerNewAccessory(device: Device): void {
-        const accessory = new this._platform.api.platformAccessory(device.name, device.uuid);
-
-        accessory.context.device = device;
-
-        createAccessoryForDevice(device, this._platform, accessory);
-
-        this._platform.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-    }
-
-    private async getDevicesForAccount(): Promise<Device[]> {
+    async discoverDevices(): Promise<Device[] | undefined> {
         try {
             const response = await this._httpClient
-                .get<DeviceResponse[]>(`accounts/${this._platform.accountService.accountId}/metadevices`);
+                .get<DeviceResponse[]>(`accounts/${this._accountService.accountId}/metadevices`);
 
             // Get only leaf devices with type of 'device'
             return response.data
@@ -106,8 +43,8 @@ export class DiscoveryService {
                 .filter(d => d.length > 0)
                 .flat();
         } catch (ex) {
-            this._platform.log.error('Failed to get devices for account.', (<AxiosError>ex).message);
-            return [];
+            this._log.error('Failed to get devices for account.', (<AxiosError>ex).message);
+            return undefined;
         }
     }
 
@@ -122,21 +59,19 @@ export class DiscoveryService {
 
         for (const supportedFc of supportedFunctions) {
             // Try to find a device that does NOT contain the same characteristic
-            const exisingDevice = devices.find(d => !d.functions.some(df => df.characteristic === supportedFc.characteristic));
+            const existingDevice = devices.find(d => !d.functions.some(df => df.characteristic === supportedFc.characteristic));
 
             // If the device already exists then just add the function to it
-            if (exisingDevice) {
-                exisingDevice.functions.push(supportedFc);
+            if (existingDevice) {
+                existingDevice.functions.push(supportedFc);
             } else {
                 // Otherwise create a new device for it
                 const defaultName = response.friendlyName;
                 const nameQualifier = supportedFc.functionInstance ?? devices.length;
                 const newName = devices.some(d => d.name === defaultName) ? `${defaultName} (${nameQualifier})` : defaultName;
 
-                // Make sure UUID is generated as many times as there are 'virtual' devices for each device
-                // because they all have the same device ID
                 devices.push({
-                    uuid: this.generatedUuid(response.id, devices.length + 1),
+                    endpointId: createHash('sha256').update(`${response.deviceId}-${devices.length + 1}`).digest('hex').slice(0, 32),
                     deviceId: response.deviceId,
                     name: newName,
                     type: type,
@@ -154,9 +89,9 @@ export class DiscoveryService {
 
     /**
      * Gets all functions that are supported (have been implemented) by the plugin
-     * @param deviceDef Homebridge device definition
-     * @param deviceFunctionResponse Hubspace device server response
-     * @returns All functions from the response that are supported by the Homebridge device
+    * @param deviceDef Supported device definition
+    * @param deviceFunctionResponse Hubspace device server response
+    * @returns All functions from the response that are supported by the plugin
      */
     private findSupportedFunctionsForDevice(deviceDef: DeviceDef, deviceFunctionResponse: DeviceFunctionResponse[]): DeviceFunction[] {
         const supportedFunctions: DeviceFunction[] = [];
@@ -168,32 +103,24 @@ export class DiscoveryService {
 
             for (const deviceFc of deviceFunctions) {
                 const functionModel = this.mapToFunction(fc, deviceFc);
-                supportedFunctions.push(functionModel);
+                if (functionModel) supportedFunctions.push(functionModel);
             }
         }
 
         return supportedFunctions;
     }
 
-    /**
-     * Generates UUID from a seed value
-     * @param value Value to use for UUID seed
-     * @param generations How many times to run the generation algorithm
-     * @returns UUID
-     */
-    private generatedUuid(value: string, generations = 1): string {
-        for (let i = 0; i < generations; i++) {
-            value = this._platform.api.hap.uuid.generate(value);
+    private mapToFunction(functionDef: DeviceFunctionDef, functionResponse: DeviceFunctionResponse): DeviceFunction | undefined {
+        const attributeId = functionResponse.values[0]?.deviceValues[0]?.key;
+        if (!attributeId) {
+            this._log.warn(`Ignoring Hubspace function ${functionResponse.functionClass} without a device attribute.`);
+            return undefined;
         }
 
-        return value;
-    }
-
-    private mapToFunction(functionDef: DeviceFunctionDef, functionResponse: DeviceFunctionResponse): DeviceFunction {
         return {
             characteristic: functionDef.characteristic,
             functionInstance: functionResponse.functionInstance,
-            attributeId: functionResponse.values[0].deviceValues[0].key
+            attributeId
         };
     }
 

@@ -1,0 +1,64 @@
+{
+  "title": "Matterbridge Hubspace",
+  "description": "Expose Hubspace lights, fans, outlets, and switches to Matter.",
+  "type": "object",
+  "required": [
+    "username",
+    "password"
+  ],
+  "properties": {
+    "name": {
+      "description": "Plugin name",
+      "type": "string",
+      "readOnly": true,
+      "ui:widget": "hidden"
+    },
+    "type": {
+      "description": "Plugin type",
+      "type": "string",
+      "readOnly": true,
+      "ui:widget": "hidden"
+    },
+    "username": {
+      "title": "Hubspace username",
+      "type": "string"
+    },
+    "password": {
+      "title": "Hubspace password",
+      "type": "string",
+      "ui:widget": "password"
+    },
+    "loginBuffer": {
+      "title": "Token refresh buffer",
+      "description": "Seconds before token expiration to refresh authentication.",
+      "type": "integer",
+      "minimum": 30,
+      "default": 300
+    },
+    "pollInterval": {
+      "title": "State polling interval",
+      "description": "Seconds between Hubspace state refreshes.",
+      "type": "integer",
+      "minimum": 5,
+      "default": 30
+    },
+    "discoveryInterval": {
+      "title": "Discovery interval",
+      "description": "Seconds between device discovery runs.",
+      "type": "integer",
+      "minimum": 60,
+      "default": 300
+    },
+    "debug": {
+      "title": "Enable debug logging",
+      "type": "boolean",
+      "default": false
+    },
+    "unregisterOnShutdown": {
+      "title": "Unregister on shutdown",
+      "description": "Remove all endpoints when the plugin stops. Intended for development only.",
+      "type": "boolean",
+      "default": false
+    }
+  }
+}
