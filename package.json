@@ -10,9 +10,6 @@
     "Cyrus Keck"
   ],
   "license": "Apache-2.0",
-  "publishConfig": {
-    "access": "public"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kirchmeyer/matterbridge-hubspace.git"
@@ -48,8 +45,7 @@
     "remove": "matterbridge --remove .",
     "watch": "tsc --watch",
     "build": "rimraf ./dist && tsc",
-    "package": "npm run lint && npm run build && node scripts/package.mjs",
-    "prepublishOnly": "npm run lint && npm run build"
+    "package": "npm run lint && npm run build && node scripts/package.mjs"
   },
   "keywords": [
     "matterbridge",

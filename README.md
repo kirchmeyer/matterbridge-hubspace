@@ -1,8 +1,8 @@
 # Matterbridge Hubspace
 
-Matterbridge dynamic-platform plugin for Hubspace devices sold by Home Depot. It uses the Hubspace cloud API and exposes discovered devices as Matter endpoints.
+Standalone Matterbridge dynamic-platform plugin for Hubspace devices sold by Home Depot. It uses the Hubspace cloud API and exposes discovered devices as Matter endpoints.
 
-[Matterbridge](https://github.com/Luligu/matterbridge) provides the Matter bridge runtime. This project is a Matterbridge port derived from the Homebridge implementations listed in [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md).
+[Matterbridge](https://github.com/Luligu/matterbridge) provides the Matter bridge runtime. Prior Hubspace community projects informed the cloud API integration and are credited in [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md).
 
 ## Supported devices
 
@@ -23,14 +23,7 @@ Hubspace devices vary by model. The plugin only exposes functions reported by bo
 
 ## Install
 
-Install a published release from npm:
-
-```bash
-sudo npm install -g matterbridge-hubspace --omit=dev
-matterbridge --add matterbridge-hubspace
-```
-
-To test a release tarball instead, download it from the GitHub release and run:
+Download the `matterbridge-hubspace-<version>.tgz` file from the corresponding [GitHub release](https://github.com/kirchmeyer/matterbridge-hubspace/releases), then install and register it:
 
 ```bash
 sudo npm install -g ./matterbridge-hubspace-0.1.0.tgz --omit=dev
