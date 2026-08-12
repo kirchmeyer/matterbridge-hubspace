@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
   release:
@@ -17,7 +18,8 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: '24.x'
-          cache: npm
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
       - name: Install dependencies
         run: npm ci
       - name: Verify release version
@@ -28,3 +30,5 @@ jobs:
         run: gh release upload "${{ github.event.release.tag_name }}" matterbridge-hubspace-*.tgz --clobber
         env:
           GH_TOKEN: ${{ github.token }}
+      - name: Publish package
+        run: npm publish matterbridge-hubspace-*.tgz --tag ${{ github.event.release.prerelease && 'preview' || 'latest' }}
