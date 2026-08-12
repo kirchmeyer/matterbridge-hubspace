@@ -23,7 +23,14 @@ Hubspace devices vary by model. The plugin only exposes functions reported by bo
 
 ## Install
 
-Download the `matterbridge-hubspace-<version>.tgz` file from the corresponding [GitHub release](https://github.com/kirchmeyer/matterbridge-hubspace/releases), then install and register it:
+Install the latest release from npm, then register it with Matterbridge:
+
+```bash
+sudo npm install -g matterbridge-hubspace --omit=dev
+matterbridge --add matterbridge-hubspace
+```
+
+Alternatively, download `matterbridge-hubspace-<version>.tgz` from the corresponding [GitHub release](https://github.com/kirchmeyer/matterbridge-hubspace/releases) and install that file:
 
 ```bash
 sudo npm install -g ./matterbridge-hubspace-0.1.0.tgz --omit=dev
